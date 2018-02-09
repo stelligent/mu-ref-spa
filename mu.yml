@@ -1,0 +1,18 @@
+environments:
+- name: acceptance
+- name: production
+service:
+  name: spa
+  port: 8080
+  healthEndpoint: /api
+  pathPatterns:
+  - /*
+  pipeline:
+    source:
+      repo: stelligent/mu-ref-spa
+parameters:
+  mu-pipeline-spa:
+    MuImage: "aws/codebuild/docker:17.09.0"
+    SourcePath: "./public"
+extensions:
+  - url: https://github.com/stelligent/mu-cloudfront/archive/v0.3.zip

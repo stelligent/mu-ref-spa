@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style> /* set the CSS */
+body {
+   margin: 40px auto;
+   width: 90%;
+   font-family: sans-serif;
+}
+#heading, #pi {
+   margin-top: 5px;
+   text-align: center;
+   font-size: 30px;
+}
+#chart {
+   margin: 10px auto;
+   width: 500px;
+   height: 500px;
+}
+#range-wrapper, #range-value, #count-display {
+   margin: 10px auto;
+   width: 500px;
+   text-align: center;
+}
+#count-input {
+    width: 500px;
+}
+</style>
+</head>
+<body>
+<div id="heading">Monte Carlo Approximation of Pi</div>
+<div id="pi"></div>
+<div id="chart"></div>
+<div id="range-wrapper"><input type="range" id="count-input" min="100" max="10000" value="1000" /></div>
+<div id="count-display"></div>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+
+// set the dimensions and margins of the graph
+var margin = {top: 30, right: 30, bottom: 30, left: 30},
+    width = 500 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+// set the ranges
+var x = d3.scaleLinear().range([0, width]);
+var y = d3.scaleLinear().range([height, 0]);
+
+function reset() {
+  d3.select('#chart').select("svg").remove();
+}
+
+function render(data) {
+
+  // append the svg obgect to the body of the page
+  // appends a 'group' element to 'svg'
+  // moves the 'group' element to the top left margin
+  var svg = d3.select("#chart").append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+      .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+
+
+  document.getElementById("pi").textContent = data.Pi;
+
+  // Scale the range of the data
+  x.domain([-1.0, 1.0]);
+  y.domain([-1.0, 1.0]);
+
+  // Add the scatterplot
+  svg.selectAll("dot")
+      .data(data.Points)
+    .enter().append("circle")
+      .attr("r", 3)
+      .attr("cx", function(d) { return x(d.X); })
+      .attr("cy", function(d) { return y(d.Y); })
+      .attr("fill", function(d) { return d.InsideCircle ? "green": "red" });
+
+  // Add the X Axis
+  svg.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x));
+
+  // Add the Y Axis
+  svg.append("g")
+      .call(d3.axisLeft(y));
+}
+
+function renderCount(count) {
+  document.getElementById("count-display").textContent = "" + count + " random points";
+}
+
+function run(count) {
+  renderCount(count);
+  fetch("/api/pi?count=" + count)
+    .then((r) => r.json())
+    .then(render);
+}
+
+run(1000);
+
+document.getElementById("count-input").addEventListener("mouseup", function(e) {
+    reset();
+    run(e.target.value);
+});
+
+document.getElementById("count-input").addEventListener("mousemove", function(e) {
+    renderCount(e.target.value);
+});
+
+</script>
+</body>
+</html>
